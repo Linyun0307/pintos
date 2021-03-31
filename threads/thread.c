@@ -242,6 +242,15 @@ thread_unblock (struct thread *t)
   intr_set_level (old_level);
 }
 
+//check if any blocked task can run
+void blocked_thread_check(struct thread *t, void *aux UNUSED){
+  if(t->status == THREAD_BLOCKED && t->ticks_blocked > 0){
+    t->ticks_blocked--;
+    if(t->ticks_blocked == 0)
+      thread_unblock(t);
+  }
+}
+
 /* Returns the name of the running thread. */
 const char *
 thread_name (void) 
@@ -463,6 +472,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;
+  t->ticks_blocked = 0;
 
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
