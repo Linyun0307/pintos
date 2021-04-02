@@ -347,7 +347,10 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
-  thread_current ()->priority = new_priority;
+  struct thread *t = thread_current();
+  
+  t->base_priority = new_priority;
+  
   thread_yield ();
 }
 
@@ -356,6 +359,34 @@ int
 thread_get_priority (void) 
 {
   return thread_current ()->priority;
+}
+
+bool 
+thread_cmp_priority (struct list_elem *x, struct list_elem *y,void *aux UNUSED){
+  return list_entry(x, struct thread, elem)->priority > list_entry(y, struct thread, elem)->priority;
+}
+
+void
+thread_donate_priority(struct thread *t)
+{
+  thread_update_priority (t);
+  if (t->status == THREAD_READY)
+  {
+    list_remove (&t->elem);
+    list_insert_ordered (&ready_list, &t->elem, thread_cmp_priority, NULL);
+  }
+}
+
+void 
+thread_update_priority (struct thread *t)
+{
+  int nxt_priority = t->base_priority;
+  if(!list_empty (&t->locks_holding)){
+    list_sort (&t->locks_holding, lock_cmp_priority, NULL);
+    int lock_priority = list_entry(list_front (&t->locks_holding),struct lock, elem)->priority;
+    if (lock_priority > nxt_priority) nxt_priority = lock_priority;
+  }
+  t->priority = nxt_priority;
 }
 
 /* Sets the current thread's nice value to NICE. */
@@ -600,7 +631,3 @@ allocate_tid (void)
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
-bool 
-thread_cmp_priority (struct list_elem *x, struct list_elem *y,void *aux UNUSED){
-  return list_entry(x, struct thread, elem)->priority > list_entry(y, struct thread, elem)->priority;
-}

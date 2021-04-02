@@ -196,8 +196,25 @@ lock_acquire (struct lock *lock)
   ASSERT (!intr_context ());
   ASSERT (!lock_held_by_current_thread (lock));
 
+  struct thread * t = thread_current();
+  enum intr_level old_level = intr_disable();
+  if (lock->holder != NULL)
+  {
+    t->lock_waiting = lock;
+    if (lock->priority < t->priority){
+      lock->priority = t->priority;
+      thread_donate_priority (lock->holder);
+    }
+  }
+  intr_set_level(old_level);
+  
   sema_down (&lock->semaphore);
+  
+  old_level = intr_disable();
+  t->lock_waiting = NULL;
+  list_insert_ordered (&t->locks_holding, &lock->elem, lock_cmp_priority, NULL);
   lock->holder = thread_current ();
+  intr_set_level (old_level);
 }
 
 /* Tries to acquires LOCK and returns true if successful or false
@@ -231,7 +248,12 @@ lock_release (struct lock *lock)
   ASSERT (lock != NULL);
   ASSERT (lock_held_by_current_thread (lock));
 
+  list_remove(&lock->elem);
+
+  enum intr_level old_level = intr_disable ();
+  thread_update_priority (thread_current());
   lock->holder = NULL;
+  intr_set_level(old_level);
   sema_up (&lock->semaphore);
 }
 
@@ -244,6 +266,11 @@ lock_held_by_current_thread (const struct lock *lock)
   ASSERT (lock != NULL);
 
   return lock->holder == thread_current ();
+}
+
+bool 
+lock_cmp_priority (struct list_elem *x, struct list_elem *y,void *aux UNUSED){
+  return list_entry(x, struct lock, elem)->priority > list_entry(y, struct lock, elem)->priority;
 }
 
 /* One semaphore in a list. */

@@ -140,12 +140,15 @@ void thread_foreach (thread_action_func *, void *);
 
 int thread_get_priority (void);
 void thread_set_priority (int);
+bool thread_cmp_priority (struct list_elem *x, struct list_elem *y,void *aux UNUSED);
+void thread_donate_priority(struct thread *t);
+void thread_update_priority(struct thread *t);
 
 int thread_get_nice (void);
 void threadgi_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
-bool thread_cmp_priority (struct list_elem *x, struct list_elem *y,void *aux UNUSED);
+
 
 #endif /* threads/thread.h */
