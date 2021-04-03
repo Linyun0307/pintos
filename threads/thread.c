@@ -347,11 +347,13 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
-  struct thread *t = thread_current();
-  
+  enum intr_level old_level = intr_disable();
+  struct thread *t = thread_current(); 
   t->base_priority = new_priority;
-  
+  if (new_priority > t->priority || list_empty (&t->locks_holding))
+    t->priority = new_priority;
   thread_yield ();
+  intr_set_level (old_level);
 }
 
 /* Returns the current thread's priority. */
@@ -382,9 +384,9 @@ thread_update_priority (struct thread *t)
 {
   int nxt_priority = t->base_priority;
   if(!list_empty (&t->locks_holding)){
-    list_sort (&t->locks_holding, lock_cmp_priority, NULL);
-    int lock_priority = list_entry(list_front (&t->locks_holding),struct lock, elem)->priority;
-    if (lock_priority > nxt_priority) nxt_priority = lock_priority;
+    int lock_priority = list_entry(list_max (&t->locks_holding, lock_cmp_priority,NULL), struct lock, elem)->priority;
+    if (lock_priority > nxt_priority)
+      nxt_priority = lock_priority;
   }
   t->priority = nxt_priority;
 }

@@ -88,7 +88,7 @@ struct thread
     enum thread_status status;          /* Thread state. */
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
-		int base_priority;									/* Base priority before donated. */
+		int base_priority;					 /* Base priority before donated. */
     int priority;                       /* Priority use to schedual. */
     struct list_elem allelem;           /* List element for all threads list. */
 
