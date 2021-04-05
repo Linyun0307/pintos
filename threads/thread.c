@@ -401,7 +401,7 @@ void
 thread_set_nice (int nice) 
 {
   thread_current ()->nice = nice;
-  thread_mlfqs_update_priority (thread_current ());
+  mlfqs_update_priority (thread_current ());
   thread_yield ();
 }
 
@@ -640,7 +640,7 @@ allocate_tid (void)
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
 void 
-thread_mlfqs_increase_recent_cpu_by_one ()
+mlfqs_increase_recent_cpu_by_one ()
 {
     ASSERT (thread_mlfqs);
     ASSERT (intr_context());
@@ -653,7 +653,7 @@ thread_mlfqs_increase_recent_cpu_by_one ()
 
 
 void
-thread_mlfqs_update_load_avg_and_recent_cpu ()
+mlfqs_update_load_avg_and_recent_cpu ()
 {
   ASSERT (thread_mlfqs);
   ASSERT (intr_context());
@@ -673,13 +673,13 @@ thread_mlfqs_update_load_avg_and_recent_cpu ()
                                                   FP_ADD_MIX (FP_MULT_MIX (load_avg, 2),1)),
                                           t->recent_cpu),
                                 t->nice);
-      thread_mlfqs_update_priority (t);
+      mlfqs_update_priority (t);
     }
   }
 }
 
 void
-thread_mlfqs_update_priority(struct thread *t)
+mlfqs_update_priority(struct thread *t)
 {
   if (t== idle_thread)
     return;

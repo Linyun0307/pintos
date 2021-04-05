@@ -88,11 +88,11 @@ struct thread
     enum thread_status status;          /* Thread state. */
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
-		int base_priority;					 /* Base priority before donated. */
+	 int base_priority;					    /* Base priority before donated. */
     int priority;                       /* Priority use to schedual. */
     struct list_elem allelem;           /* List element for all threads list. */
 
-    int64_t ticks_blocked;
+    int64_t ticks_blocked;              /* The remaining ticks should be blocked. */
 
    /* For mlfqs. */
     int nice;
@@ -102,7 +102,7 @@ struct thread
     struct list_elem elem;              /* List element. */
 
     struct lock *lock_waiting;          /* Lock blocking this thread. */
-    struct list locks_holding;                  /* Lcoks held by this thread. */
+    struct list locks_holding;          /* Lcoks held by this thread. */
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
@@ -153,9 +153,9 @@ void threadgi_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
-void thread_mlfqs_increase_recent_cpu_by_one (void);
-void thread_mlfqs_update_load_avg_and_recent_cpu (void);
-void thread_mlfqs_update_priority (struct thread *t);
+void mlfqs_increase_recent_cpu_by_one (void);
+void mlfqs_update_load_avg_and_recent_cpu (void);
+void mlfqs_update_priority (struct thread *t);
 
 
 #endif /* threads/thread.h */
