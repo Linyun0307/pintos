@@ -58,6 +58,7 @@ static unsigned thread_ticks;   /* # of timer ticks since last yield. */
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
 bool thread_mlfqs;
+fixed_t load_avg;
 
 static void kernel_thread (thread_func *, void *aux);
 
@@ -109,6 +110,7 @@ thread_start (void)
   struct semaphore idle_started;
   sema_init (&idle_started, 0);
   thread_create ("idle", PRI_MIN, idle, &idle_started);
+  load_avg = FP_CONST (0);
 
   /* Start preemptive thread scheduling. */
   intr_enable ();
@@ -515,6 +517,8 @@ init_thread (struct thread *t, const char *name, int priority)
   t->magic = THREAD_MAGIC;
   t->ticks_blocked = 0;
   t->lock_waiting = NULL;
+  t->nice = 0;
+  t->recent_cpu = FP_CONST(0);
   list_init(&t->locks_holding);
 
   old_level = intr_disable ();

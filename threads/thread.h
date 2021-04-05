@@ -94,6 +94,10 @@ struct thread
 
     int64_t ticks_blocked;
 
+   /* For mlfqs. */
+    int nice;
+    fixed_t recent_cpu;
+
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
